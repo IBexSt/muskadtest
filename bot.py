@@ -1,43 +1,10 @@
 import config
-import cherrypy
-import telebot
 from datetime import date
 import telebot, time, sqlite3
 from telebot import types, TeleBot
 
-
-WEBHOOK_HOST = '37.46.129.233'
-WEBHOOK_PORT = 8443  # 443, 80, 88 или 8443 (порт должен быть открыт!)
-WEBHOOK_LISTEN = '0.0.0.0'  # На некоторых серверах придется указывать такой же IP, что и выше
-
-WEBHOOK_SSL_CERT = './webhook_cert.pem'  # Путь к сертификату
-WEBHOOK_SSL_PRIV = './webhook_pkey.pem'  # Путь к приватному ключу
-
-WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
-WEBHOOK_URL_PATH = "/%s/" % (config.token)
-
-
 bot = telebot.TeleBot(config.token)
 
-# Наш вебхук-сервер
-class WebhookServer(object):
-    @cherrypy.expose
-    def index(self):
-        if 'content-length' in cherrypy.request.headers and \
-                        'content-type' in cherrypy.request.headers and \
-                        cherrypy.request.headers['content-type'] == 'application/json':
-            length = int(cherrypy.request.headers['content-length'])
-            json_string = cherrypy.request.body.read(length).decode("utf-8")
-            update = telebot.types.Update.de_json(json_string)
-            # Эта функция обеспечивает проверку входящего сообщения
-            bot.process_new_updates([update])
-            return ''
-        else:
-            raise cherrypy.HTTPError(403)
-
-
-
-#тестовый коммент1
 exstasy = 0
 imlive = 0
 secretfriends = 0
@@ -272,25 +239,38 @@ def modelsmoney(message):
         bot.send_message(message.from_user.id, shtrafsend)
 
 
+
 admin = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)# Вывод заработной платы моделей для Администратора
-btn1 = types.KeyboardButton('Ирина Худякова')
-btn2 = types.KeyboardButton('Ольга Клебан')
-btn3 = types.KeyboardButton('Выписать штраф')
-admin.add(btn1, btn2, btn3)
+# conn = sqlite3.connect('payouts.db', check_same_thread=False, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+#     command = conn.execute(f'SELECT DISTINCT Nickname FROM Models').fetchall()
+btn2 = types.KeyboardButton('Выписать штраф')
+admin.add(btn2)
 
 
 reject = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
 btn1 = types.KeyboardButton('Отменить')
 reject.add(btn1)
 
-# @bot.message_handler(func=lambda message: message.text == "Выписать штраф")
-# def ticket(message, settings=None):
-#     keyboard = types.InlineKeyboardMarkup()
-#     key_mod1 = types.InlineKeyboardButton(text="Ирина Худякова", callback_data="Aarriiaannaz")
-#     keyboard.add(key_mod1)
-#     bot.send_message(message.from_user.id, "Выбери имя модели", reply_markup=keyboard)
-#     bot.register_next_step_handler(message.from_user.id, zn1)
-#
+@bot.message_handler(func=lambda message: message.text == "Выписать штраф")
+def ticket(message, settings=None, models=None):
+    keyboard = types.InlineKeyboardMarkup()
+    bot.send_message(message.from_user.id, 'Кому зачислить штраф?', reply_markup=keyboard)
+    conn = sqlite3.connect('payouts.db', check_same_thread=False, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+    command = conn.execute(f'SELECT DISTINCT Nickname FROM Models').fetchall()
+    for models in command:
+        modelstr = ''.join(models)
+        markup.add(types.InlineKeyboardButton(text=modelstr, callback_data="['value', '" + modelstr + "']"),
+               types.InlineKeyboardButton(text="Приветики",
+                                          callback_data="['key', '" + modelstr + "']"))
+
+# @bot.callback_query_handler(func=lambda call: True)# Обработчик функции callback_data после ответа (Отправить) или (Редактировать)
+# def callback_worker(call):
+#     if call.data == modelstr:
+#         conn = sqlite3.connect('payouts.db', check_same_thread=False, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+#         command = conn.execute(f'SELECT Money FROM Models WHERE Nickname = "{modelstr}"')
+#     bot.send_message(call.message, text="Отлично!")
+#markup.add(types.InlineKeyboardButton(text=command, callback_data=command))
+#    bot.send_message(message.from_user.id, models)
 # def zn1(message):
 #     bot.send_message(message.from_user.id, "Впиши сумму на которую модель будет оштрафована")
 #     m_money = message.text
@@ -404,22 +384,4 @@ def foo7(message):
     bot.send_message(message.chat.id, final_message, parse_mode='html', reply_markup=markup)
 
 
-# Снимаем вебхук перед повторной установкой (избавляет от некоторых проблем)
-bot.remove_webhook()
-
-
-# Ставим заново вебхук
-bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
-                certificate=open(WEBHOOK_SSL_CERT, 'r'))
-
-# Указываем настройки сервера CherryPy
-cherrypy.config.update({
-    'server.socket_host': WEBHOOK_LISTEN,
-    'server.socket_port': WEBHOOK_PORT,
-    'server.ssl_module': 'builtin',
-    'server.ssl_certificate': WEBHOOK_SSL_CERT,
-    'server.ssl_private_key': WEBHOOK_SSL_PRIV
-})
-
- # Собственно, запуск!
-cherrypy.quickstart(WebhookServer(), WEBHOOK_URL_PATH, {'/': {}})
+bot.polling(none_stop=True)
