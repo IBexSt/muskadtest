@@ -1,4 +1,4 @@
-import config
+from config import token
 from datetime import date, datetime
 import telebot, time, sqlite3
 from telebot import types, TeleBot
@@ -9,7 +9,7 @@ today = date.today()
 first_day_month = date.today().replace(day=1)
 starting_day_of_current_year = datetime.now().date().replace(month=1, day=1)
 tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))# Конвертация даты в читабельный вид (Переменная time_send выводит в формате 09.06.2022)
-bot = telebot.TeleBot(config.token, parse_mode=None) # You can set parse_mode by default. HTML or MARKDOWN
+bot = telebot.TeleBot(token, parse_mode=None) # You can set parse_mode by default. HTML or MARKDOWN
 conn = sqlite3.connect('payouts.db', check_same_thread=False, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 cursor = conn.cursor()
 
