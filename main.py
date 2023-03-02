@@ -1,33 +1,25 @@
 import config
-from datetime import date
+from datetime import date, datetime
 import telebot, time, sqlite3
 from telebot import types, TeleBot
 
-bot = telebot.TeleBot(config.token)
-
-exstasy = 0
-imlive = 0
-secretfriends = 0
-mydirtyhobbies = 0
-islive = 0
-camcontacts = 0
-vxmodels = 0
-xmodels = 0
-jasmin = 0
-finmoney = 0
-time_send = 0
-rsumma = 0
-shtraf = 0
+exstasy = imlive = secretfriends = mydirtyhobbies = islive = camcontacts = vxmodels = xmodels = jasmin = finmoney = time_send = rsumma = shtraf = review = 0
 owner = 747983713
-review = 0
-
-
 today = date.today()
-firstday = date.today().replace(day=1)
-
-
+first_day_month = date.today().replace(day=1)
+starting_day_of_current_year = datetime.now().date().replace(month=1, day=1)
+tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))# Конвертация даты в читабельный вид (Переменная time_send выводит в формате 09.06.2022)
+bot = telebot.TeleBot(config.token, parse_mode=None) # You can set parse_mode by default. HTML or MARKDOWN
 conn = sqlite3.connect('payouts.db', check_same_thread=False, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 cursor = conn.cursor()
+
+
+def get_models_nickname():
+    button_values_list = []
+    cursor.execute(f"SELECT Nickname FROM Models WHERE Date BETWEEN '{starting_day_of_current_year}' AND '{today}' ")
+    for i in set(cursor.fetchall()):
+        button_values_list.append(i[0])
+    return button_values_list
 
 
 def db_table_val(date: date, nickname: str, money: str, comment: str):
@@ -35,28 +27,28 @@ def db_table_val(date: date, nickname: str, money: str, comment: str):
     conn.commit()
 
 
-tconv = lambda x: time.strftime("%d.%m.%Y", time.localtime(x))# Конвертация даты в читабельный вид (Переменная time_send выводит в формате 09.06.2022)
-
-
 @bot.message_handler(func=lambda message: message.text == 'Указать заработок за день 💸') # При отправке "Указать заработок", начинается поочередный ввод данных пользователем, в переменные указанные в шапке
 def money(message):
     send_mess = "Хорошо, давай посчитаем Exstasy (Euro): "
     bot.send_message(message.chat.id, send_mess, reply_markup=reject)
     bot.register_next_step_handler(message, vol1)
+reject = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+btn1 = types.KeyboardButton('Отменить')
+reject.add(btn1)
 
 
 def vol1(message):
     global exstasy
     text = message.text
     if text == 'Отменить':
-        bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=markup)
+        bot.send_message(message.from_user.id, "Хорошо, посчитаем позже 😋", reply_markup=markup)
     else:
         try:
             exstasy = float(message.text)
             bot.send_message(message.chat.id, "Спасибо, теперь ImLive (Dollar): ")
             bot.register_next_step_handler(message, vol2)
         except ValueError:
-            bot.send_message(message.chat.id, "Похоже ты ввела ( , ) вместо ( . ) Исправь пожалуйста")
+            bot.send_message(message.chat.id, "Не понимаю☹\nПопробуй использовать точку, например: 7.62")
             bot.register_next_step_handler(message, vol1)
 
 
@@ -71,7 +63,7 @@ def vol2(message):
             bot.send_message(message.chat.id, "Спасибо, теперь MyDirtyHobbies (Euro): ")
             bot.register_next_step_handler(message, vol3)
         except ValueError:
-            bot.send_message(message.chat.id, "Похоже ты ввела ( , ) вместо ( . ) Исправь пожалуйста")
+            bot.send_message(message.chat.id, "Не понимаю☹\nПопробуй использовать точку, например: 7.62")
             bot.register_next_step_handler(message, vol2)
 
 
@@ -86,7 +78,7 @@ def vol3(message):
             bot.send_message(message.chat.id, "Спасибо, теперь IsLive (Euro): ")
             bot.register_next_step_handler(message, vol4)
         except ValueError:
-            bot.send_message(message.chat.id, "Похоже ты ввела ( , ) вместо ( . ) Исправь пожалуйста")
+            bot.send_message(message.chat.id, "Не понимаю☹\nПопробуй использовать точку, например: 7.62")
             bot.register_next_step_handler(message, vol3)
 
 
@@ -101,7 +93,7 @@ def vol4(message):
             bot.send_message(message.chat.id, "Спасибо, теперь CamContacts (Dollar): ")
             bot.register_next_step_handler(message, vol5)
         except ValueError:
-            bot.send_message(message.chat.id, "Похоже ты ввела ( , ) вместо ( . ) Исправь пожалуйста")
+            bot.send_message(message.chat.id, "Не понимаю☹\nПопробуй использовать точку, например: 7.62")
             bot.register_next_step_handler(message, vol4)
 
 
@@ -116,7 +108,7 @@ def vol5(message):
             bot.send_message(message.chat.id, "Спасибо, теперь VxModels (Euro): ")
             bot.register_next_step_handler(message, vol6)
         except ValueError:
-            bot.send_message(message.chat.id, "Похоже ты ввела ( , ) вместо ( . ) Исправь пожалуйста")
+            bot.send_message(message.chat.id, "Не понимаю☹\nПопробуй использовать точку, например: 7.62")
             bot.register_next_step_handler(message, vol5)
 
 
@@ -131,7 +123,7 @@ def vol6(message):
             bot.send_message(message.chat.id, "Спасибо, теперь Xmodels (Dollar): ")
             bot.register_next_step_handler(message, vol7)
         except ValueError:
-            bot.send_message(message.chat.id, "Похоже ты ввела ( , ) вместо ( . ) Исправь пожалуйста")
+            bot.send_message(message.chat.id, "Не понимаю☹\nПопробуй использовать точку, например: 7.62")
             bot.register_next_step_handler(message, vol6)
 
 
@@ -146,7 +138,7 @@ def vol7(message):
             bot.send_message(message.chat.id, "Спасибо, теперь JasminLive (Dollar): ")
             bot.register_next_step_handler(message, vol8)
         except ValueError:
-            bot.send_message(message.chat.id, "Похоже ты ввела ( , ) вместо ( . ) Исправь пожалуйста")
+            bot.send_message(message.chat.id, "Не понимаю☹\nПопробуй использовать точку, например: 7.62")
             bot.register_next_step_handler(message, vol7)
 
 
@@ -161,7 +153,7 @@ def vol8(message):
             bot.send_message(message.chat.id, "Спасибо, теперь SecretFriends (Credits): ")
             bot.register_next_step_handler(message, vol9)
         except ValueError:
-            bot.send_message(message.chat.id, "Похоже ты ввела ( , ) вместо ( . ) Исправь пожалуйста")
+            bot.send_message(message.chat.id, "Не понимаю☹\nПопробуй использовать точку, например: 7.62")
             bot.register_next_step_handler(message, vol8)
 
 
@@ -184,7 +176,7 @@ def vol9(message):
             review = bot.send_message(message.from_user.id, text=end_vol, reply_markup=keyboard)
             time_send = tconv(message.date)
         except ValueError:
-            bot.send_message(message.chat.id, "Похоже ты ввела ( , ) вместо ( . ) Исправь пожалуйста")
+            bot.send_message(message.chat.id, "Не понимаю☹\nПопробуй использовать точку, например: 7.62")
             bot.register_next_step_handler(message, vol8)
 
 
@@ -205,7 +197,7 @@ def callback_worker(call):
         m_nick = call.from_user.username
         m_money = rmodelsmoney
         comment = "null"
-        db_table_val(date=m_date, nickname=m_nick, money=m_money, comment=comment)
+        db_table_val(date=m_date, nickname=m_nick, money=str(m_money), comment=comment)
         bot.delete_message(call.message.chat.id, message_id=review.id) # Удаляем блок чтобы информацию нельзя было задублировать
     elif call.data == "edit":
         bot.answer_callback_query(call.id) # Ответ клиентскому приложению что информация получена
@@ -220,7 +212,7 @@ def callback_worker(call):
 def modelsmoney(message):
     global rsumma
     Nik = message.from_user.username
-    cursor.execute(f"SELECT Money FROM Models WHERE Nickname = '{Nik}' AND Date BETWEEN '{firstday}' AND '{today}' ")
+    cursor.execute(f"SELECT Money FROM Models WHERE Nickname = '{Nik}' AND Date BETWEEN '{first_day_month}' AND '{today}' ")
     records = cursor.fetchall()
     summa = sum(sum(records, ()))
     rsumma = round(summa)
@@ -231,89 +223,57 @@ def modelsmoney(message):
 def modelsmoney(message):
     global shtraf
     Nik = message.from_user.username
-    cursor.execute(f"SELECT Money, Comment FROM Models WHERE Nickname = '{Nik}' AND Date BETWEEN '{firstday}' AND '{today}' AND Money < 0")
+    cursor.execute(f"SELECT Money, Comment FROM Models WHERE Nickname = '{Nik}' AND Date BETWEEN '{first_day_month}' AND '{today}' AND Money < 0")
     records = cursor.fetchall()
-    for row in records:
-        shtrafsend = (str(row[0]) + "$ за " + str(row[1]))
-        print(shtrafsend)
-        bot.send_message(message.from_user.id, shtrafsend)
+    if records != []:
+        for row in records:
+            shtrafsend = (str(row[0]) + "$ " + str(row[1]))
+            bot.send_message(message.from_user.id, shtrafsend)
+    else: bot.send_message(message.from_user.id, 'У тебя нет штрафов и авансовых выплат')
+
+
+@bot.message_handler(commands=['start', 'help'])
+def start(message):
+    username = message.from_user.username
+    if message.from_user.username == 'ibexstrt':
+        bot.send_message(message.chat.id, "Привет Босс", reply_markup=admin)
+    else:
+        send_mess = f"Привет, {username}! Я твой личный помощник! Что будем делать?)"
+        bot.send_message(message.chat.id, send_mess, reply_markup=markup)
+
+
+admin = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1) #Админ меню выводит кому назначить штраф и выводит список моделей в отдельные кнопки по уникальному Nickname
+btn1 = types.KeyboardButton('Фиксация вывода/штрафы')
+admin.add(btn1)
+for nick in get_models_nickname():
+        admin.add(nick)
+
+#=====================================Фиксация вывода/штрафы=====================================#
+@bot.message_handler(func=lambda message: message.text == "Фиксация вывода/штрафы")
+def advance_deduction_step_1(message):
+    sent = bot.send_message(message.from_user.id, "Сумма в $, например -72", reply_markup=reject)
+    bot.register_next_step_handler(sent, advance_deduction_step_2)
+
+
+def advance_deduction_step_2(message):
+    global finance
+    finance = message.text
+    sent_2 = bot.send_message(message.from_user.id, "Комментарий к вычету")
+    bot.register_next_step_handler(sent_2, advance_deduction_step_3)
+
+
+def advance_deduction_step_3(message):
+    user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
+    for nick in get_models_nickname():
+        user_markup.add(nick)
+    bot.send_message(message.from_user.id, 'Выберите сотрудника', reply_markup=user_markup)
+    # bot.delete_message(message.message.chat.id, message_id=review.id)  # Удаляем блок чтобы информацию нельзя было задублировать
+    # db_table_val(date=today, nickname=m_nick, money=finance, comment=message.text)
 
 
 
-admin = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)# Вывод заработной платы моделей для Администратора
-# conn = sqlite3.connect('payouts.db', check_same_thread=False, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
-#     command = conn.execute(f'SELECT DISTINCT Nickname FROM Models').fetchall()
-btn2 = types.KeyboardButton('Выписать штраф')
-admin.add(btn2)
 
-
-reject = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
-btn1 = types.KeyboardButton('Отменить')
-reject.add(btn1)
-
-@bot.message_handler(func=lambda message: message.text == "Выписать штраф")
-def ticket(message, settings=None, models=None):
-    keyboard = types.InlineKeyboardMarkup()
-    bot.send_message(message.from_user.id, 'Кому зачислить штраф?', reply_markup=keyboard)
-    conn = sqlite3.connect('payouts.db', check_same_thread=False, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
-    command = conn.execute(f'SELECT DISTINCT Nickname FROM Models').fetchall()
-    for models in command:
-        modelstr = ''.join(models)
-        markup.add(types.InlineKeyboardButton(text=modelstr, callback_data="['value', '" + modelstr + "']"),
-               types.InlineKeyboardButton(text="Приветики",
-                                          callback_data="['key', '" + modelstr + "']"))
-
-# @bot.callback_query_handler(func=lambda call: True)# Обработчик функции callback_data после ответа (Отправить) или (Редактировать)
-# def callback_worker(call):
-#     if call.data == modelstr:
-#         conn = sqlite3.connect('payouts.db', check_same_thread=False, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
-#         command = conn.execute(f'SELECT Money FROM Models WHERE Nickname = "{modelstr}"')
-#     bot.send_message(call.message, text="Отлично!")
-#markup.add(types.InlineKeyboardButton(text=command, callback_data=command))
-#    bot.send_message(message.from_user.id, models)
-# def zn1(message):
-#     bot.send_message(message.from_user.id, "Впиши сумму на которую модель будет оштрафована")
-#     m_money = message.text
-#
-#
-#     m_date = today
-#     m_nick = message.from_user.id
-#     bot.send_message(message.from_user.id, "Впиши сумму на которую модель будет оштрафована")
-#     m_money = message.text
-#     comentariy = "Прогуляла работу"
-#     db_table_val(date=m_date, nickname=m_nick, money=m_money, comment=comentariy)
-
-
-@bot.message_handler(func=lambda message: message.text == "Ирина Худякова")
-def ikhudakova(message):
-    global rsumma
-    cursor.execute(f"SELECT Money FROM Models WHERE Nickname = 'Aarriiaannaz' AND Date BETWEEN '{firstday}' AND '{today}' ")
-    records = cursor.fetchall()
-    summa = sum(sum(records, ()))
-    rsumma = round(summa)
-    bot.send_message(message.from_user.id, "Ирина заработала в этом месяце: " + str(rsumma) + "$")
-
-
-@bot.message_handler(func=lambda message: message.text == "Ольга Клебан")
-def kleban(message):
-    global rsumma
-    cursor.execute(f"SELECT Money FROM Models WHERE Nickname = 'OlgaKleban' AND Date BETWEEN '{firstday}' AND '{today}' ")
-    records = cursor.fetchall()
-    summa = sum(sum(records, ()))
-    rsumma = round(summa)
-    bot.send_message(message.from_user.id, "Оля заработала в этом месяце: " + str(rsumma) + "$")
-
-
-@bot.message_handler(func=lambda message: message.text == "Ирина Худякова")
-def shtraf(message):
-    global shtraf
-    cursor.execute(f"SELECT Money FROM Models WHERE Nickname = 'Aarriiaannaz' AND Date BETWEEN '{firstday}' AND '{today}' ")
-    records = cursor.fetchall()
-    summa = sum(sum(records, ()))
-    rsumma = round(summa)
-    bot.send_message(message.from_user.id, "Ирина заработала в этом месяце: " + str(rsumma) + "$")
-
-
+#=====================================Фиксация вывода/штрафы=====================================#
 markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
 btn1 = types.KeyboardButton('Указать заработок за день 💸')
 btn2 = types.KeyboardButton('Узнать о бонусах 🍀')
@@ -330,16 +290,15 @@ btn5 = types.KeyboardButton('Мои штрафы')
 btn6 = types.KeyboardButton('Назад')
 markup3.add(btn1, btn2, btn3, btn4, btn5, btn6)
 
-
-@bot.message_handler(commands=['start', 'help'])
-def start(message, settings=None):
-    username = message.from_user.username
-    if message.from_user.username == 'ibexstrt':
-        bot.send_message(message.chat.id, "Привет Босс", reply_markup=admin)
-    else:
-        send_mess = f"Привет, {username}! Я твой личный помощник! Что будем делать?)"
-        bot.send_message(message.chat.id, send_mess, reply_markup=markup)
-        keyboard = types.InlineKeyboardMarkup()
+def build_menu(buttons, n_cols,
+               header_buttons=None,
+               footer_buttons=None):
+    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+    if header_buttons:
+        menu.insert(0, [header_buttons])
+    if footer_buttons:
+        menu.append([footer_buttons])
+    return menu
 
 
 @bot.message_handler(func=lambda message: message.text == 'FAQ ❓')
@@ -366,7 +325,7 @@ def foo4(message):
     bot.send_message(message.chat.id, final_message, reply_markup=markup3)
 
 
-@bot.message_handler(func=lambda message: message.text == 'Штрафы')
+@bot.message_handler(func=lambda message: message.text == 'О штрафах')
 def foo5(message):
     final_message = "Прогул рабочего дня наказывается штрафом, как бы сурово это не было, выгоду теряете не только вы. Штраф расчитывается индивидуально и составляет от 3 000р до 6 000р в сутки. Прогул по уважительной причине (есть справка), штрафом не облагается."
     bot.send_message(message.chat.id, final_message, reply_markup=markup3)
@@ -382,6 +341,18 @@ def foo6(message):
 def foo7(message):
     final_message = "У нас действует предложение, если твоя подруга хочет вступить к нам в команду, то мы с радостью рассмотрим ее кандидатуру, а тебе будет положен бонус 5 000₽. Но есть одно условие, твоя подруга должна пройти испытательный срок равный 1 месяцу. "
     bot.send_message(message.chat.id, final_message, parse_mode='html', reply_markup=markup)
+
+
+@bot.message_handler(content_types=['text'])
+def get_salary(message):
+    global rsumma
+    if message.from_user.username == 'ibexstrt':
+        if message.text in get_models_nickname():
+            cursor.execute(f"SELECT Money FROM Models WHERE Nickname = '{message.text}' AND Date BETWEEN '{first_day_month}' AND '{today}' ")
+            records = cursor.fetchall()
+            summa = sum(sum(records, ()))
+            rsumma = round(summa)
+            bot.send_message(message.from_user.id, message.text + " Заработала в этом месяце: " + str(rsumma) + "$")
 
 
 bot.polling(none_stop=True)
