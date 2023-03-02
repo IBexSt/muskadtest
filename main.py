@@ -196,7 +196,7 @@ def callback_worker(call):
         m_date = today
         m_nick = call.from_user.username
         m_money = rmodelsmoney
-        comment = "null"
+        comment = 'null'
         db_table_val(date=m_date, nickname=m_nick, money=str(m_money), comment=comment)
         bot.delete_message(call.message.chat.id, message_id=review.id) # Удаляем блок чтобы информацию нельзя было задублировать
     elif call.data == "edit":
@@ -263,15 +263,19 @@ def advance_deduction_step_2(message):
 
 
 def advance_deduction_step_3(message):
+    global comment
+    comment = message.text
     user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
     for nick in get_models_nickname():
         user_markup.add(nick)
-    bot.send_message(message.from_user.id, 'Выберите сотрудника', reply_markup=user_markup)
-    # bot.delete_message(message.message.chat.id, message_id=review.id)  # Удаляем блок чтобы информацию нельзя было задублировать
-    # db_table_val(date=today, nickname=m_nick, money=finance, comment=message.text)
+    sent_3 = bot.send_message(message.from_user.id, "Выбери сотрудника", reply_markup=user_markup)
+    bot.register_next_step_handler(sent_3, advance_deduction_step_4)
 
 
-
+def advance_deduction_step_4(message):
+    m_nick=message.text
+    bot.send_message(message.from_user.id, 'Зарегестрировал', reply_markup=admin)
+    db_table_val(date=today, nickname=m_nick, money=finance, comment=comment)
 
 #=====================================Фиксация вывода/штрафы=====================================#
 markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
