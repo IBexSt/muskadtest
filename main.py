@@ -32,6 +32,8 @@ def money(message):
     send_mess = "Хорошо, давай посчитаем Exstasy (Euro): "
     bot.send_message(message.chat.id, send_mess, reply_markup=reject)
     bot.register_next_step_handler(message, vol1)
+
+
 reject = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
 btn1 = types.KeyboardButton('Отменить')
 reject.add(btn1)
@@ -39,8 +41,7 @@ reject.add(btn1)
 
 def vol1(message):
     global exstasy
-    text = message.text
-    if text == 'Отменить':
+    if message.text == 'Отменить':
         bot.send_message(message.from_user.id, "Хорошо, посчитаем позже 😋", reply_markup=markup)
     else:
         try:
@@ -54,8 +55,7 @@ def vol1(message):
 
 def vol2(message):
     global imlive
-    text = message.text
-    if text == 'Отменить':
+    if message.text == 'Отменить':
         bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=markup)
     else:
         try:
@@ -69,8 +69,7 @@ def vol2(message):
 
 def vol3(message):
     global mydirtyhobbies
-    text = message.text
-    if text == 'Отменить':
+    if message.text == 'Отменить':
         bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=markup)
     else:
         try:
@@ -84,8 +83,7 @@ def vol3(message):
 
 def vol4(message):
     global islive
-    text = message.text
-    if text == 'Отменить':
+    if message.text == 'Отменить':
         bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=markup)
     else:
         try:
@@ -99,8 +97,7 @@ def vol4(message):
 
 def vol5(message):
     global camcontacts
-    text = message.text
-    if text == 'Отменить':
+    if message.text == 'Отменить':
         bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=markup)
     else:
         try:
@@ -114,8 +111,7 @@ def vol5(message):
 
 def vol6(message):
     global vxmodels
-    text = message.text
-    if text == 'Отменить':
+    if message.text == 'Отменить':
         bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=markup)
     else:
         try:
@@ -129,8 +125,7 @@ def vol6(message):
 
 def vol7(message):
     global xmodels
-    text = message.text
-    if text == 'Отменить':
+    if message.text == 'Отменить':
         bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=markup)
     else:
         try:
@@ -144,8 +139,7 @@ def vol7(message):
 
 def vol8(message):
     global jasmin
-    text = message.text
-    if text == 'Отменить':
+    if message.text == 'Отменить':
         bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=markup)
     else:
         try:
@@ -161,8 +155,7 @@ def vol9(message):
     global secretfriends
     global time_send
     global review
-    text = message.text
-    if text == 'Отменить':
+    if message.text == 'Отменить':
         bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=markup)
     else:
         try:
@@ -251,15 +244,21 @@ for nick in get_models_nickname():
 #=====================================Фиксация вывода/штрафы=====================================#
 @bot.message_handler(func=lambda message: message.text == "Фиксация вывода/штрафы")
 def advance_deduction_step_1(message):
-    sent = bot.send_message(message.from_user.id, "Сумма в $, например -72", reply_markup=reject)
-    bot.register_next_step_handler(sent, advance_deduction_step_2)
+    if message.text == 'Отменить':
+        bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=admin)
+    else:
+        sent = bot.send_message(message.from_user.id, "Сумма в $, например -72", reply_markup=reject)
+        bot.register_next_step_handler(sent, advance_deduction_step_2)
 
 
 def advance_deduction_step_2(message):
     global finance
     finance = message.text
-    sent_2 = bot.send_message(message.from_user.id, "Комментарий к вычету")
-    bot.register_next_step_handler(sent_2, advance_deduction_step_3)
+    if message.text == 'Отменить':
+        bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=admin)
+    else:
+        sent_2 = bot.send_message(message.from_user.id, "Комментарий к вычету")
+        bot.register_next_step_handler(sent_2, advance_deduction_step_3)
 
 
 def advance_deduction_step_3(message):
@@ -268,14 +267,20 @@ def advance_deduction_step_3(message):
     user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
     for nick in get_models_nickname():
         user_markup.add(nick)
-    sent_3 = bot.send_message(message.from_user.id, "Выбери сотрудника", reply_markup=user_markup)
-    bot.register_next_step_handler(sent_3, advance_deduction_step_4)
+    if message.text == 'Отменить':
+        bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=admin)
+    else:
+        sent_3 = bot.send_message(message.from_user.id, "Выбери сотрудника", reply_markup=user_markup)
+        bot.register_next_step_handler(sent_3, advance_deduction_step_4)
 
 
 def advance_deduction_step_4(message):
     m_nick=message.text
-    bot.send_message(message.from_user.id, 'Зарегестрировал', reply_markup=admin)
-    db_table_val(date=today, nickname=m_nick, money=finance, comment=comment)
+    if message.text == 'Отменить':
+        bot.send_message(message.from_user.id, "Переход в главное меню...", reply_markup=markup)
+    else:
+        bot.send_message(message.from_user.id, '✅ Готово', reply_markup=admin)
+        db_table_val(date=today, nickname=m_nick, money=finance, comment=comment)
 
 #=====================================Фиксация вывода/штрафы=====================================#
 markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
